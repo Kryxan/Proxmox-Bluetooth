@@ -4,21 +4,28 @@
 [![Home Assistant](https://img.shields.io/badge/Home%20Assistant-Bluetooth%20Enabled-green)](https://www.home-assistant.io)
 [![License](https://img.shields.io/badge/License-MIT-lightgrey)](LICENSE)
 
+##  Features
+
 Expose your host's Bluetooth stack to a Home Assistant container running inside LXC. This setup enables full access to BLE sensors, pairing, scanning, and device management—without privileged access or hardware passthrough.
 
-### Frequently Asked Questions (not really, but let's just say they are...)
-
-Q: Wouldn't this be easier to just use a VM?    
-A: Yes, probably. However, on my machine, resources are limited.    
-
-Q: Why not just pass the USB device through Proxmox?    
-A: Because it's an LXC container and not a VM.    
-
-Q: How do you handle the USB address changing on reboot or unplugging/replugging the bluetooth adapter?   
-A: I don't have to, unlike other setups, that's not a concern.    
+- Full access to host Bluetooth via D-Bus and HCI proxy
+- Compatible with Home Assistant Docker or native installs
+- Works with BLE sensors, presence tracking, and pairing
+- No need for privileged containers or USB passthrough
 
 ---
-## My Setup
+
+### Preface
+
+I wanted to add Bluetooth to my much-neglected Home Assistant setup. I'm running Proxmox on a laptop with insufficient resources, but like 2w average and 5w-10w peak power consumption. It has no wired network connection, just integrated wireless combo WiFi & Bluetooth, and integrated graphics capable of H265 encoding and decoding. It's just fine for HA, a Jellyfin media server, and a few other on-and-off server tasks like video downloading and transcoding. I use Watchtower to update my docker containers, which are running inside Proxmox LXC containers.
+
+Anyway, I wanted to add Bluetooth for connecting to Bluetooth speakers, but I see now that I need to add another container for Music Assistant.
+
+Regardless, as I was searching for how to connect the Bluetooth from the host, I found not many people had a solution, no solution worked for an LXC container, and most people said it was impossible to do in such a setup. The number one solution was to buy an ESP32 and use that as a Bluetooth relay. Short story, long... I hammered out a fairly simple solution and wrote it up for others to use.
+
+---
+### My Setup
+
 ```
     Proxmox Host    
     ├── LXC Container: Home Assistant    
@@ -36,18 +43,22 @@ A: I don't have to, unlike other setups, that's not a concern.
 
 ---
 
-##  Features
+### Frequently Asked Questions (not really, but let's just say they are...)
 
-- Full access to host Bluetooth via D-Bus and HCI proxy
-- Compatible with Home Assistant Docker or native installs
-- Works with BLE sensors, presence tracking, and pairing
-- No need for privileged containers or USB passthrough
+Q: Wouldn't this be easier to just use a VM?    
+A: Yes, probably. However, on my machine, resources are limited.    
+
+Q: Why not just pass the USB device through Proxmox?    
+A: Because it's an LXC container and not a VM.    
+
+Q: How do you handle the USB address changing on reboot or unplugging/replugging the bluetooth adapter?   
+A: I don't have to, unlike other setups, that's not a concern.    
 
 ---
 
 #  Setup Instructions
 
-While you can just run the installation script to complete the first two steps, though you may need to make adjustments for your setup, so full setup directions are provided.
+You can just run the installation script to complete the first two steps, though you may need to make adjustments for your setup, so full setup directions are provided.
 
 ```bash
 chmod +x install.sh
@@ -249,5 +260,3 @@ This project is licensed under the MIT License.
 Inspired by community efforts to bridge host hardware with containerized automation platforms.
 
 ---
-
-Let me know if you'd like to add provisioning scripts, systemd templates, or Docker Compose examples.
