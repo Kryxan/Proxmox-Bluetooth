@@ -6,6 +6,9 @@ if [ "$(id -u)" -ne 0 ]; then
   exit 1
 fi
 
+apt update
+apt install -y bluetooth bluez
+
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Install locations

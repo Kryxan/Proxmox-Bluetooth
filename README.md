@@ -69,6 +69,13 @@ chmod +x install.sh
 
 ### 1. Proxy HCI Access from Host
 
+Start with the pre-requisite drivers on Proxmox
+
+```bash
+apt update
+apt install bluetooth bluez
+```
+
 Create `/opt/bluetooth-proxy/hci-proxy.sh`:
 
 ```bash
