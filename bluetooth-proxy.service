@@ -1,0 +1,11 @@
+[Unit]
+Description=Bluetooth HCI Proxy for LXC
+After=bluetooth.target
+
+[Service]
+ExecStart=/opt/bluetooth-proxy/hci-proxy.sh
+Restart=always
+User=root
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  bluetooth-proxy:
+    image: bluetooth-proxy:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.bluetooth-proxy
+    volumes:
+      - /opt/bluetooth-proxy:/opt/bluetooth-proxy
+    networks:
+      - bluetooth-network
+
+  dbus-proxy:
+    image: dbus-proxy:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.dbus-proxy
+    volumes:
+      - /opt/dbus-proxy:/opt/dbus-proxy
+    networks:
+      - bluetooth-network
+
+networks:
+  bluetooth-network:
+    driver: bridge
+
+volumes:
+  bluetooth-proxy:
+  dbus-proxy:
