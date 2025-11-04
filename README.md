@@ -199,7 +199,6 @@ docker run \
   -v /var/lib/bluetooth:/var/lib/bluetooth \
   --network host \
   -e DBUS_SYSTEM_BUS_ADDRESS=unix:path=/tmp/dbus_proxy.sock \
-  -e PIPEWIRE_BLUETOOTH_SOCKET=unix:path=/tmp/bluetooth_proxy.sock
   --cap-add=NET_ADMIN --cap-add=NET_RAW  \
   homeassistant/home-assistant:latest
 ```
@@ -216,7 +215,6 @@ services:
     network_mode: host
     environment:
       - DBUS_SYSTEM_BUS_ADDRESS=unix:path=/tmp/dbus_proxy.sock
-      - PIPEWIRE_BLUETOOTH_SOCKET=unix:path=/tmp/bluetooth_proxy.sock
     volumes:
       - /tmp/bluetooth_proxy.sock:/tmp/bluetooth_proxy.sock
       - /tmp/dbus_proxy.sock:/tmp/dbus_proxy.sock
