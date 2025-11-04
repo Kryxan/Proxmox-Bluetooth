@@ -132,7 +132,6 @@ After=dbus.service
 
 [Service]
 Type=simple
-Environment=DBUS_SYSTEM_BUS_ADDRESS=unix:path=/tmp/dbus_proxy.sock
 ExecStart=/opt/dbus-proxy/dbus-proxy.sh
 Restart=always
 User=root
@@ -195,10 +194,12 @@ If using Docker from the command line:
 
 ```shell
 docker run \
+  -v /tmp/bluetooth_proxy.sock:/tmp/bluetooth_proxy.sock
   -v /tmp/dbus_proxy.sock:/tmp/dbus_proxy.sock \
   -v /var/lib/bluetooth:/var/lib/bluetooth \
   --network host \
   -e DBUS_SYSTEM_BUS_ADDRESS=unix:path=/tmp/dbus_proxy.sock \
+  -e PIPEWIRE_BLUETOOTH_SOCKET=unix:path=/tmp/bluetooth_proxy.sock
   --cap-add=NET_ADMIN --cap-add=NET_RAW  \
   homeassistant/home-assistant:latest
 ```
@@ -215,7 +216,9 @@ services:
     network_mode: host
     environment:
       - DBUS_SYSTEM_BUS_ADDRESS=unix:path=/tmp/dbus_proxy.sock
+      - PIPEWIRE_BLUETOOTH_SOCKET=unix:path=/tmp/bluetooth_proxy.sock
     volumes:
+      - /tmp/bluetooth_proxy.sock:/tmp/bluetooth_proxy.sock
       - /tmp/dbus_proxy.sock:/tmp/dbus_proxy.sock
       - /var/lib/bluetooth:/var/lib/bluetooth
     cap_add:
