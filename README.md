@@ -151,13 +151,30 @@ systemctl enable --now dbus-proxy
 ---
 
 ### 3. Bind-Mount into LXC Container
-Edit `/etc/pve/lxc/<vmid>.conf`:
+Edit `/etc/pve/lxc/<vmid>.conf` to map the `/tmp` path and link bluetooth:
 
 ```bash
-lxc.mount.entry: /tmp/bluetooth_proxy.sock tmp/bluetooth_proxy.sock none bind,create=file
-lxc.mount.entry: /tmp/dbus_proxy.sock tmp/dbus_proxy.sock none bind,create=file
-lxc.mount.entry: /var/lib/bluetooth var/lib/bluetooth none bind,create=dir
+features: fuse=1,mknod=1,nesting=1
+mp0: /tmp,mp=/tmp
+lxc.mount.entry: /var/lib/bluetooth var/lib/bluetooth none bind,optional,create=dir 0 0
 ```
+
+**Important Note**: My previous setup used these mounts but they were inconsistent, and I advise the above mp0 mount instead:    
+`lxc.mount.entry: /tmp/bluetooth_proxy.sock tmp/bluetooth_proxy.sock none bind,create=file`    
+`lxc.mount.entry: /tmp/dbus_proxy.sock tmp/dbus_proxy.sock none bind,create=file`    
+
+
+And when running diagnostics I implimented these commands which may help with device visibility and debugging, especially for USB and PCI passthrough:
+
+```bash
+lxc.autodev: 1
+lxc.mount.auto: proc:rw sys:rw
+lxc.cgroup2.devices.allow: a
+lxc.mount.entry: /sys/kernel/security sys/kernel/security none bind,optional
+lxc.mount.entry: /dev/fuse dev/fuse none bind,create=file
+```
+These may not be strictly required for Bluetooth proxying, but may help with hardware diagnostics or container tooling.
+
 
 Restart container:
 
@@ -175,21 +192,56 @@ Inside the container:
 
 ```shell
 apt update
-apt install bluetooth bluez dbus dbus-broker
-systemctl enable dbus-broker
-systemctl mask dbus
-systemctl mask bluetooth
+apt install bluetooth bluez dbus pciutils usbutils
 ```
 
-Reboot container:
+- `pciutils` and `usbutils` help with diagnostics (`lspci`, `lsusb`)
+- `bluez` provides `bluetoothctl` and core Bluetooth stack
+
+
+**Optional** `dbus-broker` replaces legacy `dbus-daemon` for better performance, but masking dbus can cause problems. This probably belongs on the Proxmox host and not the LXC.
 
 ```shell
-reboot
+apt install dbus-broker
+systemctl enable dbus-broker
+systemctl mask dbus
 ```
+Experiment with what works best for you. 
 
 ---
 
-### 5. Run Home Assistant with Bluetooth Support
+### 5. Environment Variable Setup
+To ensure we can use Bluetooth tools use the proxied D-Bus socket, set:
+`export DBUS_SYSTEM_BUS_ADDRESS=unix:path=/tmp/dbus_proxy.sock`
+
+Persistent Setup
+Create a systemd service `/etc/systemd/system/dbus-env.service`:
+
+```bash
+[Unit]
+Description=Set DBUS_SYSTEM_BUS_ADDRESS for Bluetooth proxy
+Before=multi-user.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash -c 'echo "export DBUS_SYSTEM_BUS_ADDRESS=unix:path=/tmp/dbus_proxy.sock" >> /etc/environment'
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Enable it:
+
+```shell
+systemctl daemon-reexec
+systemctl enable --now dbus-env
+```
+
+
+---
+
+### 6. Run Docker with Bluetooth Support
 If using Docker from the command line:
 
 ```shell
