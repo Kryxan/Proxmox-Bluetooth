@@ -178,6 +178,7 @@ Restart PipeWire:
 systemctl restart bluetooth
 systemctl restart --user pipewire
 ```
+Experiment with what works best for you. 
 
 ---
 
