@@ -76,9 +76,9 @@ apt update
 apt install -y bluetooth bluez dbus-broker
 ```
 
-I previously used `/tmp` for the proxy socket, but I found this no longer works. I switched to `/mnt` which is more persistent and less likely to be cleaned up. This was not an issue originally, but Kernel 7.x and/or changes in the Debian LXC template may have introduced changes to the cleanup processes that affect `/tmp`. I am now using `/mnt` since I already use a recursive mount as part of my automount scripts, but you can use any directory that is not cleaned up on reboot.
+I previously used `/tmp` for the proxy socket, but I found this no longer works. I switched to `/mnt` which is more persistent and less likely to be cleaned up. This was not an issue originally, but Kernel 7.x and/or changes in the Debian LXC template may have introduced changes to the cleanup processes that affect `/tmp`.
 
-(my [automount script](https://github.com/Kryxan/automount-pve) has since been merged with [theyo-tester's](https://github.com/theyo-tester/automount-pve) version)
+I am now using `/mnt` since I already use a recursive mount as part of my automount scripts, but you can use any directory that is not cleaned up on reboot. (my [automount script](https://github.com/Kryxan/automount-pve) has since been merged with [theyo-tester's](https://github.com/theyo-tester/automount-pve) version)
 
 ### Create systemd service `/etc/systemd/system/dbus-proxy.service`:
 
@@ -204,7 +204,6 @@ lxc.mount.entry: /mnt mnt none rbind,create=dir 0 0
 
 ## 3. Configure Container
 
-
 ### Inside LXC: `/etc/systemd/system/dbus-proxy-link.service`:
 
 Create Symlink Service Inside LXC
@@ -245,6 +244,8 @@ Confirm the LXC sees the host’s BlueZ over the proxy.
 - Inside LXC: `busctl tree org.bluez`
 - You should now see `/org/bluez/hci0`
 
+> Other potential solution suggested was to use the environment variable below. I am including it, but it does not work for me. However, if you want to try it, add the below line to your LXC configuration. Run the verification part of this step, and if it works for you, then you may not need to set up the systemd service to link the proxy socket.
+> `lxc.environment.runtime: DBUS_SYSTEM_BUS_ADDRESS=unix:path=/mnt/dbus_proxy.sock`
 
 ---
 
