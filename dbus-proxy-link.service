@@ -1,0 +1,12 @@
+[Unit]
+Description=Symlink host D-Bus proxy to system bus socket
+After=network.target
+Before=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/bin/mkdir -p /run/dbus
+ExecStart=/bin/ln -sf /mnt/ha_dbus_proxy.sock /run/dbus/system_bus_socket
+
+[Install]
+WantedBy=multi-user.target

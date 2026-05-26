@@ -1,30 +1,36 @@
-version: '3.8'
 
+name: homeassistant
 services:
-  bluetooth-proxy:
-    image: bluetooth-proxy:latest
-    build:
-      context: .
-      dockerfile: Dockerfile.bluetooth-proxy
+  homeassistant:
+    image: ghcr.io/home-assistant/home-assistant:stable
+    container_name: homeassistant
+    network_mode: host
     volumes:
-      - /opt/bluetooth-proxy:/opt/bluetooth-proxy
-    networks:
-      - bluetooth-network
+      - /mnt/docker/homeassistant/config:/config
+      - /run/dbus/system_bus_socket:/run/dbus/system_bus_socket:ro
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
 
-  dbus-proxy:
-    image: dbus-proxy:latest
-    build:
-      context: .
-      dockerfile: Dockerfile.dbus-proxy
+  matterserver:
+    image: ghcr.io/home-assistant-libs/python-matter-server:stable
+    container_name: matterserver
+    network_mode: host
     volumes:
-      - /opt/dbus-proxy:/opt/dbus-proxy
-    networks:
-      - bluetooth-network
+      - /mnt/docker/matterserver:/data
+      - /run/dbus/system_bus_socket:/run/dbus/system_bus_socket:ro
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
 
-networks:
-  bluetooth-network:
-    driver: bridge
-
-volumes:
-  bluetooth-proxy:
-  dbus-proxy:
+  musicassistant:
+    image: ghcr.io/music-assistant/server:latest
+    container_name: musicassistant
+    network_mode: host
+    volumes:
+      - /mnt/docker/musicassistant:/data
+      - /run/dbus/system_bus_socket:/run/dbus/system_bus_socket:ro
+    restart: unless-stopped
+    

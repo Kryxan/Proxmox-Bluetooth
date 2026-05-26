@@ -1,13 +1,12 @@
+# /etc/systemd/system/dbus-proxy.service
 [Unit]
-Description=D-Bus Proxy for LXC
-After=dbus.service
+Description=D-Bus proxy for HA Bluetooth
+After=bluetooth.service
 
 [Service]
-Type=simple
-Environment=DBUS_SYSTEM_BUS_ADDRESS=unix:path=/tmp/dbus_proxy.sock
-ExecStart=/opt/dbus-proxy/dbus-proxy.sh
+ExecStartPre=/bin/rm -f /mnt/ha_dbus_proxy.sock
+ExecStart=/usr/bin/socat UNIX-LISTEN:/mnt/ha_dbus_proxy.sock,fork,reuseaddr,mode=0666 UNIX-CONNECT:/run/dbus/system_bus_socket
 Restart=always
-User=root
 
 [Install]
 WantedBy=multi-user.target
