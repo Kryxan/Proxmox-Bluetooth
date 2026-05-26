@@ -198,6 +198,8 @@ lxc.mount.auto: proc:rw sys:rw cgroup:rw
 lxc.mount.entry: /mnt mnt none rbind,create=dir 0 0
 ```
 
+\* `lxc.mount.auto: proc:rw sys:rw cgroup:rw` is not completely necessary to allow the container to access the system resources for Bluetooth management. `nesting=1` and `fuse=1` are more important, however, your setup can differ. Not every setup requires these options, you can experiment with what works best for you. `rbind` is only because I use a recursive mount for my automount scripts, but you can use a non-recursive bind mount if you are not using a path used by other filesystems. The key point is to ensure that the container has access to the proxy socket. 
+
 ---
 
 ## 3. Configure Container
@@ -239,7 +241,7 @@ systemctl enable --now dbus-proxy-link
 Restart LXC and Verify BlueZ Visibility
 Confirm the LXC sees the host’s BlueZ over the proxy.
 
-- `pct restart <ID>` (from host)
+- `pct reboot <ID>` (from host)
 - Inside LXC: `busctl tree org.bluez`
 - You should now see `/org/bluez/hci0`
 
@@ -303,10 +305,23 @@ services:
       - NET_RAW
 
 ```
+\* NET_RAW: Needed for:
+- Raw Bluetooth HCI sockets
+- Multicast DNS
+- SSDP
+- ICMP
+- Low‑level BLE scanning
+
+\* NET_ADMIN: Needed for:
+- Setting Bluetooth socket options
+- Joining multicast groups
+- Configuring network interfaces for discovery protocols
+
+\* Even though the audio is handled on the host, the Bluetooth control plane (GATT, BLE, Matter commissioning) still requires these capabilities.
 
 ### Bluetooth with PipeWire A2DP for Music Assistant:
 
-Again, this is not fully tested on my setup:
+Again, this is not fully tested on my setup. I provide it so people can test it if they have a compatible adapter, and I will update the instructions as I test it myself or receive feedback from users who have tested it.:
 
 ```shell
 docker run -d \
@@ -331,6 +346,10 @@ or with Docker Compose:
     restart: unless-stopped
 ```
 
+\* Music Assistant does not need NET_ADMIN or NET_RAW capabilities, it only needs:
+- D‑Bus access (for Bluetooth metadata + AVRCP control)
+- RTP audio input (from PipeWire)
+- Host networking (for discovery + HA integration)
 
 ### If using Portainer:    
 
